@@ -15,7 +15,8 @@ for line in open("cw2graphite/version.py"):
         sys.exit("error: can't find version information")
 
 requires = [
-    "boto"
+    "boto",
+    "arrow"
 ]
 
 setup(
