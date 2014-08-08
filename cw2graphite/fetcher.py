@@ -1,3 +1,4 @@
+import copy
 import boto
 import boto.ec2.cloudwatch
 import arrow
@@ -16,7 +17,29 @@ def fetcher(config):
 
     for metric in metrics:
         metric_result = fetch_metric(c,metric)
-        print(metric_result)
+        print_metric(metric_result,metric)
+
+def print_metric(metric_result,metric_config):
+    #sorted
+    _list = [(x["Timestamp"],x) for x in metric_result ]
+    _list.sort()
+    metric_result = [x[1] for x in _list]
+
+    metric_name = [] 
+    if "carbonNameSpacePrefix" in metric_config:
+        metric_name.append(metric_config["carbonNameSpacePrefix"])
+    metric_name.append(metric_config["Namespace"].replace("/","."))
+    for name,value in metric_config["Dimensions"].iteritems():
+        metric_name.append(value)
+
+    for stat in  metric_config["Statistics"]:
+        _metric_name = copy.deepcopy(metric_name)
+        _metric_name.append(stat)
+        _metric_name = ".".join(_metric_name)
+        for metric in metric_result:
+            metric_timestamp = arrow.get(metric["Timestamp"]).timestamp
+            message = "%s %s %s" % (_metric_name,metric[stat],metric_timestamp)
+            print(message)
 
 def fetch_metric(conn,metric_config):
     period = 60
