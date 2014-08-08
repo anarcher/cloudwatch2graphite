@@ -17,9 +17,9 @@ def fetcher(config):
 
     for metric in metrics:
         metric_result = fetch_metric(c,metric)
-        print_metric(metric_result,metric)
+        print_metric(metric_result,metric,aws)
 
-def print_metric(metric_result,metric_config):
+def print_metric(metric_result,metric_config,aws):
     #sorted
     _list = [(x["Timestamp"],x) for x in metric_result ]
     _list.sort()
@@ -29,8 +29,10 @@ def print_metric(metric_result,metric_config):
     if "carbonNameSpacePrefix" in metric_config:
         metric_name.append(metric_config["carbonNameSpacePrefix"])
     metric_name.append(metric_config["Namespace"].replace("/","."))
+    metric_name.append(aws['region'])
     for name,value in metric_config["Dimensions"].iteritems():
         metric_name.append(value)
+    metric_name.append(metric_config["MetricName"])
 
     for stat in  metric_config["Statistics"]:
         _metric_name = copy.deepcopy(metric_name)
