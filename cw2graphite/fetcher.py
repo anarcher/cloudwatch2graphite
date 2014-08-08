@@ -20,11 +20,6 @@ def fetcher(config):
         print_metric(metric_result,metric,aws)
 
 def print_metric(metric_result,metric_config,aws):
-    #sorted
-    _list = [(x["Timestamp"],x) for x in metric_result ]
-    _list.sort()
-    metric_result = [x[1] for x in _list]
-
     metric_name = [] 
     if "carbonNameSpacePrefix" in metric_config:
         metric_name.append(metric_config["carbonNameSpacePrefix"])
@@ -67,8 +62,21 @@ def fetch_metric(conn,metric_config):
         "dimensions" : dimensions,
         "unit" : unit,
     }
-    result = conn.get_metric_statistics(**kwargs)
-    return result
+    metric_result = conn.get_metric_statistics(**kwargs)
+
+    _list = [(x["Timestamp"],x) for x in metric_result ]
+    _list.sort()
+    metric_result = [x[1] for x in _list]
+
+    # Very often in Cloudwtch the last aggregated point is inaccurate and might be updated 1 or 2 minutes later
+    # this is not a problem if we choose to overwrite it into graphite, so we read the 3 last points.
+    if 'numberOfOverlappingPoints' in metric_config:
+        len_metric_result = len(metric_result)
+        num_overlapping_points = metric_result['numberOfOverlappingPoints']
+        if len_metric_result > num_overlapping_points:
+            metric_result = metric_result[len_metric_result-num_overlapping_points:]
+
+    return metric_result
 
 
 
