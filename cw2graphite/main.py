@@ -2,7 +2,7 @@ import argparse
 import os
 import json
 from version import __version__
-from fetcher import fetcher
+from fetcher import Fetcher
 
 def main():
     parser = argparse.ArgumentParser(description="cloudwatch2graphite will output graphite counters for a list of AWS Cloudwatch metrics")
@@ -25,7 +25,8 @@ def main():
     if args.region:
         config['aws']['region'] = args.region
 
-    fetcher(config)
+    fetcher = Fetcher(config)
+    fetcher()
 
     return
 
